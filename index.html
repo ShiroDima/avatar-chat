@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Avatar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+<body>
+
+<div class="container m-auto">
+    <div class="flex justify-center items-center m-auto flex-col gap-6 w-[1000px]">
+        <div class="w-[500px] h-[500px] mt-10 mb-10 flex gap-2 justify-center">
+            <video
+                class="bg-slate-200 rounded-full w-[500px] h-[500px]"
+                id="talk-video"
+                width="500"
+                height="500"s
+                autoplay
+                playsinline
+            >
+            </video>
+            <video
+                class="bg-slate-200 rounded-full w-[500px] h-[500px]"
+                id="ai-video"
+                width="500"
+                height="500"s
+                autoplay
+                playsinline
+            >
+            </video>
+        </div>
+        <div class="w-[50%] bg-slate-200 p-2">
+            <div class="grid grid-flow-col gap-20 mb-10 justify-center">
+                <div>
+                    <button
+                            class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
+                            type="button"
+                            id="connect-button"
+                    >
+                        Connect
+                    </button>
+                </div>
+<!--                <div>-->
+<!--                    <button-->
+<!--                            class="w-[85px] disabled backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"-->
+<!--                            type="button"-->
+<!--                            id="talk-button"-->
+<!--                    >-->
+<!--                        Start-->
+<!--                    </button>-->
+<!--                </div>-->
+                <div>
+                    <button
+                            class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] enabled:hover:bg-[#1E293B] hover:text-white p-2"
+                            type="button"
+                            id="converse-button"
+                    >
+                        Converse
+                    </button>
+                </div>
+                <div>
+                    <button
+                            class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
+                            type="button"
+                            id="destroy-button"
+                    >
+                        Destroy
+                    </button>
+                </div>
+            </div>
+<!--            <div id="status">-->
+<!--                <div>-->
+<!--                    <p class='font-bold text-lg'>Instance: <span class='font-bold text-lg' id="status__id"></span></p>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <p class='text-lg font-bold'>ICE gathering status: <span class='font-bold text-lg' id="status__ICE_Gather"></span></p>-->
+<!--                </div>-->
+<!--&lt;!&ndash;                {/* <div class="text-green-950">&ndash;&gt;-->
+<!--&lt;!&ndash;                <p class='font-bold'>ICE status: {iceStatus}</p>&ndash;&gt;-->
+<!--&lt;!&ndash;            </div> */}&ndash;&gt;-->
+<!--                <div>-->
+<!--                    <p class="font-bold text-lg">-->
+<!--                        Peer Connection status: <span id="status__peer_conn" class='text-lg font-bold'></span>-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <p class="font-bold text-lg">Signaling status: <span id="status__signal" class="text-lg font-bold"></span></p>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <p class="font-bold text-lg">Streaming status: <span id="status__stream" class='text-lg font-bold'></span></p>-->
+<!--                </div>-->
+<!--            </div>-->
+            <div class="h-[80px] flex justify-center">
+                <h1 class="hidden h-full text-[40px] font-bold text-green-500" id="status__connected">Connected</h1>
+                <h1 class="h-full text-[40px] font-bold text-red-500" id="status__disconnected">Disconnected</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="index.js"></script>
+</body>
+</html>
