@@ -11,7 +11,7 @@
 // }
 
 let ENV = 'production'
-let URL = ENV==='local' ? 'http://127.0.0.1:8000': "http://54.81.99.252:8000"
+let URL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
 let API_KEY = axios
     .post(`${URL}/get_key`)
     .then(response => {return response.data})
@@ -30,9 +30,18 @@ let localVideoStream
 let localAudioStream
 let videoRecorder
 let audioRecorder
-const sock = io(`${URL}`, {
-    path: '/stream'
-})
+let formData = new FormData()
+// const sock = io(`${URL}`, {
+//     path: '/stream',
+//     transport: ["websocket", "polling"]
+// })
+// const socket = new WebSocket(`ws://https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws/audio_stream`)
+// socket.onmessage = async (event) => {
+//     // console.log(event.data)
+//     let ai = getAIResponse(event.data)
+//     await createTalkStream(await ai)
+// }
+
 let aiTurn = false
 
 // console.log(config)
@@ -52,19 +61,19 @@ converseBtn = document.getElementById('converse-button')
 destroyBtn = document.getElementById('destroy-button')
 
 // Instance Element
-instanceID = document.getElementById('status__id')
+// instanceID = document.getElementById('status__id')
 
 // ICE Gathering Element
-iceGathering = document.getElementById('status__ICE_Gather')
+// iceGathering = document.getElementById('status__ICE_Gather')
 
 // Peer Connection Element
-peerConnStatus = document.getElementById('status__peer_conn')
+// peerConnStatus = document.getElementById('status__peer_conn')
 
 // Signaling Status Element
-signalStatus = document.getElementById('status__signal')
+// signalStatus = document.getElementById('status__signal')
 
 // Streaming status Element
-streamStatus = document.getElementById('status__stream')
+// streamStatus = document.getElementById('status__stream')
 
 // Webcam Video Element
 talkVideo = document.getElementById('talk-video')
@@ -96,6 +105,7 @@ function enable(element){
 }
 
 let main = async () => {
+    console.log(await API_KEY)
     const constraints = {
         audio: true,
         video: {
@@ -113,50 +123,79 @@ let main = async () => {
         videoRecorder = new MediaRecorder(localVideoStream)
         audioRecorder = new MediaRecorder(localAudioStream)
 
-        videoRecorder.ondataavailable = (event) => {
-            sock.emit('stream', {data: event.data, kind: 'video'})
-            // sock.send({data: event.data, kind: 'video'})
-            // console.log(`Video Chunks: ${event.data}`)
-            // videoChunks.push(event.data)
-        }
+        // videoRecorder.ondataavailable = async (event) => {
+        //     formData.append('video', event.data)
+        //     // sock.emit('stream', {data: event.data, kind: 'video'})
+        //     // sock.send({data: event.data, kind: 'video'})
+        //     // console.log(`Data type: ${typeof event.data}`)
+        //     // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
+        //     // videoChunks.push(event.data)
+        //
+        //     // axios
+        //     //     .post(`${URL}/stream`, {
+        //     //         kind: 'video',
+        //     //         data: videoChunks.pop()
+        //     //     })
+        //     //     .then(response => console.log(response))
+        //     //     .catch(error => console.log(error))
+        //
+        //     axios
+        //         .post(`${URL}/stream`, formData)
+        //         .then(response => console.log(response))
+        //         .catch(error => console.log(error))
+        //
+        //     videoChunks = []
+        // }
 
         audioRecorder.ondataavailable = async (event) => {
-            sock.emit('stream', {data: event.data, kind: 'audio'})
-            // uploadData.audio_video = event.data
-            // console.log(`Audio Chunks: ${event.data.stream()}`)
-            // audioChunks.push(event.data)
-            // let reader = event.data.stream().getReader()
-            // let res = await reader.read()
-            // console.log(res.value.toString())
-            // audioFile.readAsBinaryString(event.data)
-            // audioFile.onload = () => {
-            //     formData.append('audio_data', audioFile.result, 'audio_data.mp4')
-            //     console.log(`Type: ${typeof audioFile.result}`)
-            //     console.log(`Audio Data: ${audioFile.result}`)
-            // }
+            // socket.send(event.data)
+            formData.append('audio', event.data)
+
+            axios
+                .post(`${URL}/stream`, formData)
+                .then(async (response) => {
+                    let ai = getAIResponse(response.data)
+                    await createTalkStream(await ai)
+                })
+                .catch(error => console.log(error))
+
+            // audioChunks = []
         }
 
 
         //
         // mediaRecorder.stop()
         //
-        // videoRecorder.onstop = (event) => {
+        // videoRecorder.onstop = async (event) => {
         //     // console.log('Is this even triggering at all?')
         //     // uploadData.video_data = videoChunks.pop()
-        //     // formData.append('video_data', videoChunks.pop(), 'video_data.mp4')
+        //     formData.append('video', videoChunks.pop(), 'video_data.mp4')
         //     // videoBlob = new Blob(videoChunks, {type: 'video/mp4;'})
+        //     // formData.append('video_data', videoChunks.pop(), 'video_data.mp4')
         //     // sock.emit('stream', {data: event.data, kind: 'video'}, (response) => {
         //     //     console.log(response.status)
         //     // })
         //
         //     // sock.on('disconnect')
+        //
+        //     // axios
+        //     //     .post(`${URL}/stream`, formData)
+        //     //     .then(response => console.log(response))
+        //     //     .catch(error => console.log(error))
+        //
+        //     // axios
+        //     //     .post(`${URL}/stream`, {
+        //     //         kind: 'video',
+        //     //         data: videoChunks.pop()
+        //     //     })
+        //     //     .then(response => console.log(response))
+        //     //     .catch(error => console.log(error))
+        //     //
         //     // videoChunks = []
-        //
-        //
         // }
         // audioRecorder.onstop = async (event) => {
         //     // uploadData.audio_video = audioChunks.pop()
-        //     // formData.append('audio_data', audioChunks.pop(), 'audio_data.mp4')
+        //     formData.append('audio', audioChunks.pop(), 'audio_data.mp4')
         //     // audioBlob = new Blob(audioChunks, {type: 'audio/mpeg;'})
         //     // audioFile.readAsBinaryString(audioBlob)
         //     // audioFile.onload = () => {
@@ -166,6 +205,21 @@ let main = async () => {
         //     // console.log(`Upload data after saving audio data: ${uploadData}`)
         //     // console.log(formData.getHeaders)
         //     // console.log(JSON.stringify(formData))
+        //
+        //     // axios
+        //     //     .post(`${URL}/stream`, formData)
+        //     //     .then(response => console.log(response))
+        //     //     .catch(error => console.log(error))
+        //     // console.log(audioChunks.length)
+        //     // axios
+        //     //     .post(`${URL}/stream`, {
+        //     //         kind: 'audio',
+        //     //         data: audioChunks.pop()
+        //     //     })
+        //     //     .then(response => console.log(response))
+        //     //     .catch(error => console.log(error))
+        //     //
+        //     // audioChunks = []
         // }
 
         // console.log(uploadData)
@@ -177,10 +231,10 @@ let main = async () => {
 
 main()
 
-sock.on('transcribed', async (transcribedText) => {
-    let ai = getAIResponse(transcribedText)
-    createTalkStream(await ai)
-})
+// sock.on('transcribed', async (transcribedText) => {
+//     let ai = getAIResponse(transcribedText)
+//     createTalkStream(await ai)
+// })
 
 async function fetchWithRetries(url, options, retries = 1) {
     try {
@@ -369,7 +423,6 @@ converseBtn.addEventListener('click', async (event) => {
 })
 
 destroyBtn.addEventListener('click', async (event) => {
-    console.log('This destroy event is firing')
     await fetch(`https://api.d-id.com/talks/streams/${streamId}`, {
         method: "DELETE",
         headers: {
@@ -381,6 +434,8 @@ destroyBtn.addEventListener('click', async (event) => {
 
     stopAllStreams();
     closePC();
+    hide(document.getElementById('status__connected'))
+    show(document.getElementById('status__disconnected'))
 })
 
 async function onIceCandidate(event) {
@@ -430,7 +485,7 @@ function onConnectionStateChange() {
 
 function onSignalingStateChange() {
     // signalStatus.innerText = peerConnection?.signalingState
-    peerConnection?.signalingState === "stable" ? showGreen(signalStatus) : null
+    // peerConnection?.signalingState === "stable" ? showGreen(signalStatus) : null
 }
 
 function onVideoStatusChange(videoIsPlaying, stream) {
@@ -537,7 +592,6 @@ async function createTalkStream(textInput){
     if(!streamId){
         throw new Error('Session ID does not exist!')
     }
-
     const options = {
         method: 'POST',
         url: `https://api.d-id.com/talks/streams/${streamId}`,
@@ -554,7 +608,11 @@ async function createTalkStream(textInput){
                 ssml: false,
                 input: textInput
             },
-            config: {fluent: false, pad_audio: 0.0, stitch: true, driver_expressions: {
+            config: {
+                fluent: false,
+                pad_audio: 0.0,
+                stitch: true,
+                driver_expressions: {
                     expressions: [{
                         expression: "happy",
                         start_frame: 0,
@@ -572,6 +630,7 @@ async function createTalkStream(textInput){
         })
         .catch(function (error) {
             console.error(error);
+            enable(converseBtn)
         });
     //
     // axios
