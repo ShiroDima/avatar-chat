@@ -31,6 +31,7 @@ let localAudioStream
 let videoRecorder
 let audioRecorder
 let formData = new FormData()
+let currentUnit = "SI"
 // const sock = io(`${URL}`, {
 //     path: '/stream',
 //     transport: ["websocket", "polling"]
@@ -44,9 +45,6 @@ let formData = new FormData()
 
 let aiTurn = false
 
-// console.log(config)
-
-// console.log(config.filter(conf => conf.id==="createStreamConfig"))
 
 // Talk Button Element
 connectBtn = document.getElementById('connect-button')
@@ -60,20 +58,20 @@ converseBtn = document.getElementById('converse-button')
 // Destroy Button Element
 destroyBtn = document.getElementById('destroy-button')
 
-// Instance Element
-// instanceID = document.getElementById('status__id')
+// BMI Weight Input
+weightBtn = document.getElementById("bmi__weight")
 
-// ICE Gathering Element
-// iceGathering = document.getElementById('status__ICE_Gather')
+// BMI Height Input
+heightBtn = document.getElementById("bmi__height")
 
-// Peer Connection Element
-// peerConnStatus = document.getElementById('status__peer_conn')
+// BMI Calculate Button
+bmiCalcBtn = document.getElementById("bmi__calculate")
 
-// Signaling Status Element
-// signalStatus = document.getElementById('status__signal')
+// SI Unit Button
+siBtn = document.querySelector("#bmi__unit_select > span:nth-child(1) > button")
 
-// Streaming status Element
-// streamStatus = document.getElementById('status__stream')
+// US Unit Button
+usBtn = document.querySelector("#bmi__unit_select > span:nth-child(2) > button")
 
 // Webcam Video Element
 talkVideo = document.getElementById('talk-video')
@@ -104,8 +102,33 @@ function enable(element){
     element.disabled = false
 }
 
-let main = async () => {
-    console.log(await API_KEY)
+(async function() {
+    disable(converseBtn)
+    await connect()
+
+    usBtn.onclick = () => {
+        usBtn.classList.toggle('bg-gray-400')
+        usBtn.classList.toggle('cursor-not-allowed')
+        siBtn.classList.toggle('bg-gray-400')
+        siBtn.classList.toggle('cursor-not-allowed')
+        currentUnit = "US"
+        switchUnits()
+    }
+
+    siBtn.onclick = () => {
+        siBtn.classList.toggle('bg-gray-400')
+        siBtn.classList.toggle('cursor-not-allowed')
+        usBtn.classList.toggle('bg-gray-400')
+        usBtn.classList.toggle('cursor-not-allowed')
+        currentUnit = "SI"
+
+        switchUnits()
+        // siBtn.classList.add('cursor-not-allowed')
+    }
+
+
+    // console.log(await API_KEY)
+
     const constraints = {
         audio: true,
         video: {
@@ -119,7 +142,7 @@ let main = async () => {
         let localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
         let localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
 
-        talkVideo.srcObject = localVideoStream
+        // talkVideo.srcObject = localVideoStream
         videoRecorder = new MediaRecorder(localVideoStream)
         audioRecorder = new MediaRecorder(localAudioStream)
 
@@ -227,9 +250,50 @@ let main = async () => {
         console.log(err)
     }
 
-}
+    weightBtn.oninput = () => {
+        showValid(weightBtn)
+        if(checkInputIsValid(heightBtn) && checkInputIsValid(weightBtn)){
+            bmiCalcBtn.classList.remove("cursor-not-allowed")
+        }
+        if(!checkInputIsValid(weightBtn)){
+            if(!bmiCalcBtn.classList.contains("cursor-not-allowed")){
+                bmiCalcBtn.classList.add("cursor-not-allowed")
+            }
+        }
+    }
+    heightBtn.oninput = () => {
+        showValid(heightBtn)
+        if(!checkInputIsValid(heightBtn)){
+            if(!bmiCalcBtn.classList.contains("cursor-not-allowed")){
+                // console.log("already disabled")
+                bmiCalcBtn.classList.add("cursor-not-allowed")
+            }
+        }
+        if(checkInputIsValid(weightBtn) && checkInputIsValid(heightBtn)){
+            bmiCalcBtn.classList.remove("cursor-not-allowed")
+        }
 
-main()
+    }
+
+    bmiCalcBtn.onclick =  (event) => {
+        event.preventDefault()
+
+        weight = Number(weightBtn.value)
+        height = Number(heightBtn.value)
+
+        if(currentUnit==="SI"){
+            console.log(`BMI [kg/m2]:\t${weight/Math.pow(height, 2)}`)
+        }else{
+            console.log(`BMI [lb/in2]:\t${(weight/Math.pow(height, 2))*703}`)
+        }
+        
+
+    }
+
+    //
+})()
+
+// main()
 
 // sock.on('transcribed', async (transcribedText) => {
 //     let ai = getAIResponse(transcribedText)
@@ -314,7 +378,7 @@ async function createPeerConnection(offer, iceServers) {
     return sessionClientAnswer;
 }
 
-connectBtn.addEventListener('click', async (event) => {
+async function connect() {
     // console.log(process.env.DID_API_KEY)
     let session;
     if (peerConnection && peerConnection.connectionState === "connected") {
@@ -344,7 +408,7 @@ connectBtn.addEventListener('click', async (event) => {
     sessionId = newSessionId;
 
     await createPeerConnection(offer, iceServers);
-})
+}
 
 // talkBtn.addEventListener('click', async (event) => {
 //     console.log('This start event is firing')
@@ -363,9 +427,6 @@ connectBtn.addEventListener('click', async (event) => {
 // })
 
 converseBtn.addEventListener('click', async (event) => {
-    if (!streamId) {
-        alert("Session has not been established.");
-    }
     if (
         peerConnection?.signalingState === "stable" ||
         peerConnection?.iceConnectionState === "connected"
@@ -422,21 +483,21 @@ converseBtn.addEventListener('click', async (event) => {
 
 })
 
-destroyBtn.addEventListener('click', async (event) => {
-    await fetch(`https://api.d-id.com/talks/streams/${streamId}`, {
-        method: "DELETE",
-        headers: {
-            Authorization: `Basic ${await API_KEY}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ session_id: sessionId }),
-    });
+// destroyBtn.addEventListener('click', async (event) => {
+//     await fetch(`https://api.d-id.com/talks/streams/${streamId}`, {
+//         method: "DELETE",
+//         headers: {
+//             Authorization: `Basic ${await API_KEY}`,
+//             "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({ session_id: sessionId }),
+//     });
 
-    stopAllStreams();
-    closePC();
-    hide(document.getElementById('status__connected'))
-    show(document.getElementById('status__disconnected'))
-})
+//     stopAllStreams();
+//     closePC();
+//     hide(document.getElementById('status__connected'))
+//     show(document.getElementById('status__disconnected'))
+// })
 
 async function onIceCandidate(event) {
     if (event.candidate) {
@@ -472,14 +533,17 @@ function onIceConnectionStateChange() {
     }
 }
 
-function onConnectionStateChange() {
+async function onConnectionStateChange() {
     // peerConnStatus.innerText = peerConnection?.connectionState
     if(peerConnection?.connectionState === "connected"){
         show(document.getElementById('status__connected'))
         hide(document.getElementById('status__disconnected'))
+        await createTalkStream("Hello! How may I be of assistance")
+        enable(converseBtn)
     }else{
         hide(document.getElementById('status__connected'))
         show(document.getElementById('status__disconnected'))
+        disable(converseBtn)
     }
 }
 
@@ -502,8 +566,6 @@ function onVideoStatusChange(videoIsPlaying, stream) {
     // streamStatus.innerText = status;
     // status==="streaming" ? showGreen(streamStatus) : null
 }
-
-//
 
 function onTrack(event) {
     if (!event.track) return;
@@ -536,16 +598,6 @@ function setVideoElement(stream) {
     aiVideo.srcObject = stream;
     // talkVideo.loop = true;
 }
-
-// function playIdleVideo() {
-//     if (aiVideo) {
-//         aiVideo.srcObject = null;
-//         // talkVideo.current.src = "or_idle.mp4";
-//         aiVideo.src = "https://cdn.pixabay.com/photo/2021/06/04/10/28/portrait-6309448_1280.jpg";
-//         aiVideo.loop = true;
-//         // src=
-//     }
-// }
 
 function stopAllStreams() {
     if (aiVideo?.srcObject) {
@@ -637,4 +689,32 @@ async function createTalkStream(textInput){
     //     .request(options)
     //     .then(response => console.log(response))
     //     .catch(error => console.log(error))
+}
+
+function checkInputIsValid(element){
+    if(isNaN(Number(element.value)) || !element.value){
+        return false
+    }else{
+        return true
+    }
+}
+
+function showValid(element){
+    if(!checkInputIsValid(element)){
+        element.classList.remove("focus:outline-none")
+        element.classList.add("outline", "outline-offset-2", "outline-red-600", "focus:outline-red-600")
+    }else{
+        element.classList.remove("outline", "outline-offset-2", "outline-red-600", "focus:outline-red-600")
+        element.classList.add("focus:outline-none")
+    }
+}
+
+function switchUnits(){
+    if(currentUnit==="US"){
+        document.getElementById("bmi__weight_unit").innerText = "lb"
+        document.getElementById("bmi__height_unit").innerText = "in"
+    }else{
+        document.getElementById("bmi__weight_unit").innerText = "kg"
+        document.getElementById("bmi__height_unit").innerText = "m"
+    }
 }

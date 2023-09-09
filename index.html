@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>AI Avatar</title>
@@ -7,12 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
 </head>
+
 <body>
 
-<div class="container m-auto">
-    <div class="flex justify-center items-center m-auto flex-col gap-6 w-[1000px]">
-        <div class="w-[500px] h-[500px] mt-10 mb-10 flex gap-2 justify-center">
-            <video
+    <div class="container m-auto h-screen">
+        <div class="flex justify-center items-center m-auto flex-col gap-6 w-[1000px]">
+            <div class="w-[500px] h-[500px] mt-10 mb-2 flex gap-2 justify-center">
+                <!-- <video
                 class="bg-slate-200 rounded-full w-[500px] h-[500px]"
                 id="talk-video"
                 width="500"
@@ -20,20 +22,20 @@
                 autoplay
                 playsinline
             >
-            </video>
-            <video
-                class="bg-slate-200 rounded-full w-[500px] h-[500px]"
-                id="ai-video"
-                width="500"
-                height="500"s
-                autoplay
-                playsinline
-            >
-            </video>
-        </div>
-        <div class="w-[50%] bg-slate-200 p-2">
-            <div class="grid grid-flow-col gap-20 mb-10 justify-center">
-                <div>
+            </video> -->
+                <video class="bg-slate-200 rounded-full w-[500px] h-[500px]" id="ai-video" width="500" height="500" s
+                    autoplay playsinline>
+                </video>
+            </div>
+            <div class="w-[50%] bg-gray-500 p-2">
+                <div class="grid grid-flow-col gap-20 mb-2 justify-between">
+                    <div class="flex p-2 justify-center items-center">
+                        <h1 class="hidden h-full text-[18px] font-bold text-green-500" id="status__connected">Connected
+                        </h1>
+                        <h1 class="h-full text-[18px] font-bold text-red-500" id="status__disconnected">Disconnected
+                        </h1>
+                    </div>
+                    <!-- <div>
                     <button
                             class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
                             type="button"
@@ -41,26 +43,24 @@
                     >
                         Connect
                     </button>
-                </div>
-<!--                <div>-->
-<!--                    <button-->
-<!--                            class="w-[85px] disabled backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"-->
-<!--                            type="button"-->
-<!--                            id="talk-button"-->
-<!--                    >-->
-<!--                        Start-->
-<!--                    </button>-->
-<!--                </div>-->
-                <div>
-                    <button
-                            class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] enabled:hover:bg-[#1E293B] hover:text-white p-2"
-                            type="button"
-                            id="converse-button"
-                    >
-                        Converse
-                    </button>
-                </div>
-                <div>
+                </div> -->
+                    <!--                <div>-->
+                    <!--                    <button-->
+                    <!--                            class="w-[85px] disabled backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"-->
+                    <!--                            type="button"-->
+                    <!--                            id="talk-button"-->
+                    <!--                    >-->
+                    <!--                        Start-->
+                    <!--                    </button>-->
+                    <!--                </div>-->
+                    <div class=" ">
+                        <button
+                            class="w-[250px] bg-gray-300 backdrop:border-solid border font-bold text-lg border-[#1E293B] enabled:hover:bg-gray-400 p-2 shadow-2xl"
+                            type="button" id="converse-button">
+                            Converse
+                        </button>
+                    </div>
+                    <!-- <div>
                     <button
                             class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
                             type="button"
@@ -68,39 +68,58 @@
                     >
                         Destroy
                     </button>
+                </div> -->
                 </div>
-            </div>
-<!--            <div id="status">-->
-<!--                <div>-->
-<!--                    <p class='font-bold text-lg'>Instance: <span class='font-bold text-lg' id="status__id"></span></p>-->
-<!--                </div>-->
-<!--                <div>-->
-<!--                    <p class='text-lg font-bold'>ICE gathering status: <span class='font-bold text-lg' id="status__ICE_Gather"></span></p>-->
-<!--                </div>-->
-<!--&lt;!&ndash;                {/* <div class="text-green-950">&ndash;&gt;-->
-<!--&lt;!&ndash;                <p class='font-bold'>ICE status: {iceStatus}</p>&ndash;&gt;-->
-<!--&lt;!&ndash;            </div> */}&ndash;&gt;-->
-<!--                <div>-->
-<!--                    <p class="font-bold text-lg">-->
-<!--                        Peer Connection status: <span id="status__peer_conn" class='text-lg font-bold'></span>-->
-<!--                    </p>-->
-<!--                </div>-->
-<!--                <div>-->
-<!--                    <p class="font-bold text-lg">Signaling status: <span id="status__signal" class="text-lg font-bold"></span></p>-->
-<!--                </div>-->
-<!--                <div>-->
-<!--                    <p class="font-bold text-lg">Streaming status: <span id="status__stream" class='text-lg font-bold'></span></p>-->
-<!--                </div>-->
-<!--            </div>-->
-            <div class="h-[80px] flex justify-center">
-                <h1 class="hidden h-full text-[40px] font-bold text-green-500" id="status__connected">Connected</h1>
-                <h1 class="h-full text-[40px] font-bold text-red-500" id="status__disconnected">Disconnected</h1>
+                <div class="flex justify-center">
+                    <div id="bmi" class="w-[80%]">
+                        <div class="flex">
+                            <h2 class="text-[50px]">BMI</h2>
+                            <div class="inline-flex ml-3 items-center justify-center" id="bmi__unit_select">
+                                <span class="w-[40px] mr-2">
+                                    <button class="bg-gray-300 bg-gray-400 cursor-not-allowed text-gray-800 font-bold p-1 rounded-l w-[100%]">
+                                    SI
+                                </button>
+                                </span>
+                                <span class="w-[40px]">
+                                    <button class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold p-1 rounded-r">
+                                    US
+                                </button>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex relative">
+                                <input class="w-full h-[60px] text-lg bg-slate-200 p-3 m-1 mb-3 focus:outline-none" type="text"
+                                    name="weight" id="bmi__weight" placeholder="What is your weight?">
+                                <span class="flex bg-gray-400 justify-center items-center absolute w-[60px] h-[60px] absolute right-1 top-1 text-lg font-bold text-[#1E293B]"
+                                      id="bmi__weight_unit"
+                                >
+                                    kg
+                                </span>
+                            </div>
+                            <div class="flex relative">
+                                <input class="w-full h-[60px] text-lg bg-slate-200 p-3 m-1 focus:outline-none" type="text" name="height"
+                                    id="bmi__height" placeholder="What is your height?">
+                                <span class="flex bg-gray-400 justify-center items-center absolute w-[60px] h-[60px] absolute right-1 top-1 text-lg font-bold text-[#1E293B]"
+                                      id="bmi__height_unit"
+                                >
+                                    m
+                                </span>
+                            </div>
+                            <div class="flex justify-center">
+                                <button class="mt-5 p-3 border font-bold text-lg border-gray-400 w-[30%] cursor-not-allowed shadow-2xl" id="bmi__calculate">Calculate</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+<!--                <button class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow">-->
+
             </div>
         </div>
     </div>
-</div>
 
 
-<script src="index.js"></script>
+    <script src="index.js"></script>
 </body>
+
 </html>
