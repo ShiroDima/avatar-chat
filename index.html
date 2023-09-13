@@ -7,113 +7,165 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
-<body>
+<body class="bg-slate-300">
 
     <div class="container m-auto h-screen">
-        <div class="flex justify-center items-center m-auto flex-col gap-6 w-[1000px]">
-            <div class="w-[500px] h-[500px] mt-10 mb-2 flex gap-2 justify-center">
-                <!-- <video
-                class="bg-slate-200 rounded-full w-[500px] h-[500px]"
-                id="talk-video"
-                width="500"
-                height="500"s
-                autoplay
-                playsinline
-            >
-            </video> -->
-                <video class="bg-slate-200 rounded-full w-[500px] h-[500px]" id="ai-video" width="500" height="500" s
-                    autoplay playsinline>
-                </video>
-            </div>
-            <div class="w-[50%] bg-gray-500 p-2">
-                <div class="grid grid-flow-col gap-20 mb-2 justify-between">
-                    <div class="flex p-2 justify-center items-center">
-                        <h1 class="hidden h-full text-[18px] font-bold text-green-500" id="status__connected">Connected
-                        </h1>
-                        <h1 class="h-full text-[18px] font-bold text-red-500" id="status__disconnected">Disconnected
-                        </h1>
-                    </div>
-                    <!-- <div>
-                    <button
-                            class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
-                            type="button"
-                            id="connect-button"
-                    >
-                        Connect
-                    </button>
-                </div> -->
-                    <!--                <div>-->
-                    <!--                    <button-->
-                    <!--                            class="w-[85px] disabled backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"-->
-                    <!--                            type="button"-->
-                    <!--                            id="talk-button"-->
-                    <!--                    >-->
-                    <!--                        Start-->
-                    <!--                    </button>-->
-                    <!--                </div>-->
-                    <div class=" ">
-                        <button
-                            class="w-[250px] bg-gray-300 rounded font-bold text-lg border-[#1E293B] enabled:hover:bg-gray-400 p-2 shadow-2xl"
-                            type="button" id="converse-button">
-                            Converse
-                        </button>
-                    </div>
-                    <!-- <div>
-                    <button
-                            class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
-                            type="button"
-                            id="destroy-button"
-                    >
-                        Destroy
-                    </button>
-                </div> -->
+        <div class="relative w-[100%] h-[100%]">
+            <div class="flex justify-center items-center m-auto flex-col gap-6 w-[1000px]">
+                <div class="w-[500px] h-[500px] mt-10 mb-2 flex gap-2 justify-center">
+                    <!-- <video
+                    class="bg-slate-200 rounded-full w-[500px] h-[500px]"
+                    id="talk-video"
+                    width="500"
+                    height="500"s
+                    autoplay
+                    playsinline
+                >
+                </video> -->
+                    <video class="bg-gray-400 rounded-full shadow-2xl w-[500px] h-[500px]" id="ai-video" width="500" height="500"
+                           autoplay playsinline>
+                    </video>
                 </div>
-                <div class="flex justify-center">
-                    <div id="bmi" class="w-[80%]">
-                        <div class="flex">
-                            <h2 class="text-[50px]">BMI</h2>
-                            <div class="inline-flex ml-3 items-center justify-center" id="bmi__unit_select">
+                <div class="w-[60%] bg-gray-400 p-2 shadow-2xl rounded">
+                    <div class="grid grid-flow-col gap-20 mb-2 justify-between">
+                        <div class="flex p-2 justify-center items-center">
+                            <button class="hidden h-full text-[18px] font-bold text-green-500" id="status__connect">Connected
+                            </button>
+                            <button class="h-full text-[18px] font-bold text-red-500" id="status__disconnect">Disconnected
+                            </button>
+                        </div>
+                        <!-- <div>
+                        <button
+                                class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
+                                type="button"
+                                id="connect-button"
+                        >
+                            Connect
+                        </button>
+                    </div> -->
+                        <!--                <div>-->
+                        <!--                    <button-->
+                        <!--                            class="w-[85px] disabled backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"-->
+                        <!--                            type="button"-->
+                        <!--                            id="talk-button"-->
+                        <!--                    >-->
+                        <!--                        Start-->
+                        <!--                    </button>-->
+                        <!--                </div>-->
+                        <div class="flex items-center justify-between w-[300px]">
+                            <button
+                                    class="w-[250px] bg-gray-300 rounded font-bold text-lg border-[#1E293B] enabled:hover:bg-gray-500 p-2 shadow-2xl"
+                                    type="button" id="converse-button">
+                                Converse
+                            </button>
+                            <button class="" id="settings__open"><i class="fa fa-cog text-gray-500 rounded font-bold text-[35px]" aria-hidden="true"></i></button>
+                        </div>
+                        <!-- <div>
+                        <button
+                                class="w-[95px] backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"
+                                type="button"
+                                id="destroy-button"
+                        >
+                            Destroy
+                        </button>
+                    </div> -->
+                    </div>
+                    <div class="flex justify-center">
+                        <div id="bmi" class="w-[80%]">
+                            <div class="flex">
+                                <h2 class="text-[50px]">BMI</h2>
+                                <div class="inline-flex ml-3 items-center justify-center" id="bmi__unit_select">
                                 <span class="w-[40px] mr-2">
-                                    <button class="bg-gray-300 bg-gray-400 cursor-not-allowed text-gray-800 font-bold p-1 rounded-l w-[100%]">
+                                    <button class="bg-gray-300 bg-gray-500 hover:bg-gray-500 cursor-not-allowed text-gray-800 font-bold p-1 rounded-l w-[100%]">
                                     SI
                                 </button>
                                 </span>
-                                <span class="w-[40px]">
-                                    <button class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold p-1 rounded-r">
+                                    <span class="w-[40px]">
+                                    <button class="w-full bg-gray-300 hover:bg-gray-500 text-gray-800 font-bold p-1 rounded-r">
                                     US
                                 </button>
                                 </span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <div class="flex relative">
-                                <input class="w-full h-[60px] text-lg bg-slate-200 p-3 m-1 mb-3 focus:outline-none" type="text"
-                                    name="weight" id="bmi__weight" placeholder="What is your weight?">
-                                <span class="flex bg-gray-400 justify-center items-center absolute w-[60px] h-[60px] absolute right-1 top-1 text-lg font-bold text-[#1E293B]"
-                                      id="bmi__weight_unit"
-                                >
+                            <div class="flex flex-col">
+                                <div class="flex relative">
+                                    <input class="w-full h-[60px] text-lg bg-slate-200 p-3 m-1 mb-3 focus:outline-none" type="number"
+                                           name="weight" id="bmi__weight" placeholder="What is your weight?">
+                                    <span class="flex bg-gray-500 justify-center items-center absolute w-[60px] h-[60px] absolute right-1 top-1 text-lg font-bold text-[#1E293B]"
+                                          id="bmi__weight_unit"
+                                    >
                                     kg
                                 </span>
-                            </div>
-                            <div class="flex relative">
-                                <input class="w-full h-[60px] text-lg bg-slate-200 p-3 m-1 focus:outline-none" type="text" name="height"
-                                    id="bmi__height" placeholder="What is your height?">
-                                <span class="flex bg-gray-400 justify-center items-center absolute w-[60px] h-[60px] absolute right-1 top-1 text-lg font-bold text-[#1E293B]"
-                                      id="bmi__height_unit"
-                                >
+                                </div>
+                                <div class="flex relative">
+                                    <input class="w-full h-[60px] text-lg bg-slate-200 p-3 m-1 focus:outline-none" type="number" name="height"
+                                           id="bmi__height" placeholder="What is your height?">
+                                    <span class="flex bg-gray-500 justify-center items-center absolute w-[60px] h-[60px] absolute right-1 top-1 text-lg font-bold text-[#1E293B]"
+                                          id="bmi__height_unit"
+                                    >
                                     m
                                 </span>
-                            </div>
-                            <div class="flex justify-center">
-                                <button class="mt-5 p-3 font-bold text-lg bg-gray-300 rounded border-gray-400 w-[30%] cursor-not-allowed shadow-2xl" id="bmi__calculate">Calculate</button>
+                                </div>
+                                <div class="flex justify-center">
+                                    <button class="mt-5 p-3 font-bold text-lg bg-gray-300 rounded enabled:hover:bg-gray-500 border-gray-400 w-[30%] cursor-not-allowed shadow-2xl" id="bmi__calculate">Calculate</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-<!--                <button class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow">-->
+                    <!--                <button class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow">-->
 
+                </div>
+            </div>
+            <div class="absolute w-[500px] h-[550px] bg-gray-500 rounded shadow-2xl top-0 left-1/3 translate-y-1/2" id="settings">
+                <div class="flex justify-between items-center mx-5 mt-2">
+                    <h1 class="text-[35px] font-bold text-gray-300">Settings</h1>
+                    <button class="" id="settings__close"><i class="fa fa-close text-[35px] text-gray-300 m-2"></i></button>
+                </div>
+                <div id="settings__image_upload" class="flex flex-col h-[50%] m-2">
+                    <div class="flex items-center my-2">
+                        <h1 class="text-gray-300 text-lg font-bold mx-3">Upload Avatar Image</h1>
+<!--                        <i class="fa fa-question-circle cursor-pointer" aria-hidden="true"></i>-->
+                    </div>
+                    <label
+                            id="settings__image_label"
+                            for="settings__image"
+                           class="w-[100%] h-[100%] bg-gray-700 cursor-pointer flex justify-center items-center border-2 border-dashed text-gray-300"
+                    >
+                        <i class="fas fa-cloud-upload-alt text-2xl text-gray-300 mx-3"></i>
+                        <input
+                                type="file"
+                                accept="image/jpeg, image/png"
+                                name="imageUpload"
+                                id="settings__image"
+                                class="hidden"
+                        >
+                        Upload Image File
+                    </label>
+                    <div>
+
+                    </div>
+                </div>
+                <div id="settings__voice" class="flex flex-col mx-2 my-5">
+                    <div class="flex my-2">
+                        <h1 class="text-gray-300 text-lg font-bold mx-3">Select Voice</h1>
+
+                    </div>
+<!--                    <label for="settings__voice_select" class="mx-5 block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select an option</label>-->
+                    <select
+                            name="voice"
+                            id="settings__voice_select"
+                            class="focus:outline-none mx-2 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <option>---Please select a voice option----</option>
+                    </select>
+<!--                    <input type="hidden" name="voice_id" id="settings__voice_id">-->
+<!--                    <audio controls type="audio/mpeg" class="bg-gray-700 rounded-none text-gray-700" src=""></audio>-->
+                </div>
+                <div class="flex w-[100%] justify-center">
+                    <button id="settings__submit" class="w-[50%] h-[50px] text-white text-lg rounded shadow-2xl bg-gray-700">Done</button>
+                </div>
             </div>
         </div>
     </div>

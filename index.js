@@ -11,9 +11,9 @@
 // }
 
 let ENV = 'production'
-let URL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
+let BACKENDURL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
 let API_KEY = axios
-    .post(`${URL}/get_key`)
+    .post(`${BACKENDURL}/get_key`)
     .then(response => {return response.data})
     .catch(error => console.log(error))
 
@@ -24,7 +24,7 @@ let streamId
 const maxRetryCount = 3
 const maxDelaySec = 4
 let statsIntervalId
-let videoIsPlaying
+let videoIsPlaying = false
 let lastBytesReceived
 let localVideoStream
 let localAudioStream
@@ -32,6 +32,34 @@ let videoRecorder
 let audioRecorder
 let formData = new FormData()
 let currentUnit = "SI"
+// let expression = ""
+let talkStreamConfig = {
+    script: {
+        type: 'text',
+        subtitles: false,
+        provider: {type: 'microsoft', voice_id: 'en-US-JasonNeural'},
+        ssml: false,
+        input: ""
+    },
+    config: {
+        fluent: false,
+        pad_audio: 0.0,
+        stitch: true,
+        driver_expressions: {
+            expressions: [{
+                expression: "neutral",
+                start_frame: 0,
+                intensity: 0.4
+            }]
+        }},
+    session_id: ""
+}
+
+let userHappy = false
+let userSad = false
+let userAngry = false
+let userFear = false
+
 // const sock = io(`${URL}`, {
 //     path: '/stream',
 //     transport: ["websocket", "polling"]
@@ -79,6 +107,24 @@ talkVideo = document.getElementById('talk-video')
 // AI Video Element
 aiVideo = document.getElementById('ai-video')
 
+// Connected Button Element
+connectedBtn = document.getElementById('status__connect')
+
+// Disconnected Button Element
+disconnectedBtn = document.getElementById('status__disconnect')
+
+// Image Input Label
+imgLabel = document.getElementById('settings__image_label')
+
+// Image Input
+imgInput = document.getElementById('settings__image')
+
+// Voice Select Element
+voiceSelect = document.getElementById('settings__voice_select')
+
+// Settings Submit Button
+settingsSubmit = document.getElementById('settings__submit')
+
 function showGreen(element){
     // Makes the font color green
     element.classList.add('text-green-500')
@@ -104,21 +150,47 @@ function enable(element){
 
 (async function() {
     disable(converseBtn)
-    await connect()
+    await createOptions()
+    // connect()
+
+    document.getElementById("settings__close").onclick = async () => {
+        if(!sessionId){
+            await connect()
+            document.getElementById("settings").classList.add('hidden')
+        }else {
+            document.getElementById("settings").classList.add('hidden')
+        }
+    }
+    document.getElementById("settings__open").onclick = () => document.getElementById("settings").classList.remove('hidden')
+
+    disconnectedBtn.onclick = () => connect()
+    connectedBtn.onclick = async () => {
+        await fetch(`https://api.d-id.com/talks/streams/${streamId}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Basic ${await API_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ session_id: sessionId }),
+        });
+
+        closePC()
+        stopAllStreams()
+    }
 
     usBtn.onclick = () => {
-        usBtn.classList.toggle('bg-gray-400')
+        usBtn.classList.toggle('bg-gray-500')
         usBtn.classList.toggle('cursor-not-allowed')
-        siBtn.classList.toggle('bg-gray-400')
+        siBtn.classList.toggle('bg-gray-500')
         siBtn.classList.toggle('cursor-not-allowed')
         currentUnit = "US"
         switchUnits()
     }
 
     siBtn.onclick = () => {
-        siBtn.classList.toggle('bg-gray-400')
+        siBtn.classList.toggle('bg-gray-500')
         siBtn.classList.toggle('cursor-not-allowed')
-        usBtn.classList.toggle('bg-gray-400')
+        usBtn.classList.toggle('bg-gray-500')
         usBtn.classList.toggle('cursor-not-allowed')
         currentUnit = "SI"
 
@@ -126,59 +198,105 @@ function enable(element){
         // siBtn.classList.add('cursor-not-allowed')
     }
 
+    voiceSelect.onchange = () => {
+        // talkStreamConfig.script.provider.type = "amazon"
+        // console.log(voiceSelect.options[voiceSelect.selectedIndex].text.split(" ", 1))
+        talkStreamConfig.script.provider.voice_id = voiceSelect.options[voiceSelect.selectedIndex].value
+    }
+
+    imgInput.onchange = (event) => formData.append("image", event.target.files[0])
+    // imgInput.onchange = (event) => processImage(event)
+    settingsSubmit.onclick = () => submitSettings()
 
     // console.log(await API_KEY)
 
-    const constraints = {
-        audio: true,
-        video: {
-            facingMode: {exact: 'user'},
-            width: 500,
-            height: 500
-        }
+
+    imgLabel.ondragenter = (event) => {
+        event.stopPropagation()
+        event.preventDefault()
     }
-    // {video: true, audio: true}
+
+    imgLabel.ondragover = (event) => {
+        event.stopPropagation()
+        event.preventDefault()
+    }
+
+    imgLabel.ondrop = (event) => {
+        event.stopPropagation()
+        event.preventDefault()
+        formData.append("image", event.dataTransfer.files[0])
+    }
+
     try{
-        let localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
-        let localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
+        const constraints = {
+            audio: true,
+            video: {
+                facingMode: {exact: 'user'},
+                width: 500,
+                height: 500
+            }
+        }
+        localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
+        localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
+
+
 
         // talkVideo.srcObject = localVideoStream
         videoRecorder = new MediaRecorder(localVideoStream)
         audioRecorder = new MediaRecorder(localAudioStream)
 
-        // videoRecorder.ondataavailable = async (event) => {
-        //     formData.append('video', event.data)
-        //     // sock.emit('stream', {data: event.data, kind: 'video'})
-        //     // sock.send({data: event.data, kind: 'video'})
-        //     // console.log(`Data type: ${typeof event.data}`)
-        //     // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
-        //     // videoChunks.push(event.data)
-        //
-        //     // axios
-        //     //     .post(`${URL}/stream`, {
-        //     //         kind: 'video',
-        //     //         data: videoChunks.pop()
-        //     //     })
-        //     //     .then(response => console.log(response))
-        //     //     .catch(error => console.log(error))
-        //
-        //     axios
-        //         .post(`${URL}/stream`, formData)
-        //         .then(response => console.log(response))
-        //         .catch(error => console.log(error))
-        //
-        //     videoChunks = []
-        // }
+        // videoRecorder.start(60e3)
+
+        videoRecorder.ondataavailable = async (event) => {
+            let formData = new FormData()
+            formData.append('video', event.data)
+            // sock.emit('stream', {data: event.data, kind: 'video'})
+            // sock.send({data: event.data, kind: 'video'})
+            // console.log(`Data type: ${typeof event.data}`)
+            // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
+            // videoChunks.push(event.data)
+
+            // axios
+            //     .post(`${URL}/stream`, {
+            //         kind: 'video',
+            //         data: videoChunks.pop()
+            //     })
+            //     .then(response => console.log(response))
+            //     .catch(error => console.log(error))
+
+            // let img = new Image()
+            // img.src = URL.createObjectURL(event.data)
+            // // URL.createObjectURL()
+            // console.log(img)
+
+            axios
+                .post(`${BACKENDURL}/video_stream`, formData)
+                .then(async (response) => {
+                    // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
+                    // console.log()
+
+                    await queryEmotions(response.data[0])
+                    // console.log(talkStreamConfig)
+                })
+                .catch(error => console.log(error))
+
+            // videoChunks = []
+        }
 
         audioRecorder.ondataavailable = async (event) => {
             // socket.send(event.data)
+            let formData = new FormData()
             formData.append('audio', event.data)
 
             axios
-                .post(`${URL}/stream`, formData)
+                .post(`${BACKENDURL}/audio_stream`, formData)
                 .then(async (response) => {
-                    let ai = getAIResponse(response.data)
-                    await createTalkStream(await ai)
+                    // console.log(response.data)
+                    await getAIResponse(response.data)
+
+                    // console.log(talkStreamConfig)
+                    // talkStreamConfig.script.input = await getAIResponse(response.data)
+                    // await createTalkStream(await ai)
                 })
                 .catch(error => console.log(error))
 
@@ -190,6 +308,7 @@ function enable(element){
         // mediaRecorder.stop()
         //
         // videoRecorder.onstop = async (event) => {
+
         //     // console.log('Is this even triggering at all?')
         //     // uploadData.video_data = videoChunks.pop()
         //     formData.append('video', videoChunks.pop(), 'video_data.mp4')
@@ -243,6 +362,8 @@ function enable(element){
         //     //     .catch(error => console.log(error))
         //     //
         //     // audioChunks = []
+
+            // await createTalkStream()
         // }
 
         // console.log(uploadData)
@@ -251,7 +372,10 @@ function enable(element){
     }
 
     weightBtn.oninput = () => {
-        showValid(weightBtn)
+        // if(weightBtn.value){
+        //     showValid(weightBtn)
+        // }
+        // showValid(weightBtn)
         if(checkInputIsValid(heightBtn) && checkInputIsValid(weightBtn)){
             bmiCalcBtn.classList.remove("cursor-not-allowed")
         }
@@ -262,7 +386,10 @@ function enable(element){
         }
     }
     heightBtn.oninput = () => {
-        showValid(heightBtn)
+        // if(heightBtn.value){
+        //     showValid(heightBtn)
+        // }
+        // showValid(heightBtn)
         if(!checkInputIsValid(heightBtn)){
             if(!bmiCalcBtn.classList.contains("cursor-not-allowed")){
                 // console.log("already disabled")
@@ -275,18 +402,28 @@ function enable(element){
 
     }
 
-    bmiCalcBtn.onclick =  (event) => {
+    bmiCalcBtn.onclick =  async (event) => {
         event.preventDefault()
 
-        weight = Number(weightBtn.value)
-        height = Number(heightBtn.value)
-
+        let weight = Number(weightBtn.value)
+        let height = Number(heightBtn.value)
+        let BMI = currentUnit === "SI" ? weight/Math.pow(height, 2) : (weight/Math.pow(height, 2))*703
         if(currentUnit==="SI"){
-            console.log(`BMI [kg/m2]:\t${weight/Math.pow(height, 2)}`)
+            console.log(`BMI [kg/m2]:\t${BMI}`)
         }else{
-            console.log(`BMI [lb/in2]:\t${(weight/Math.pow(height, 2))*703}`)
+            console.log(`BMI [lb/in2]:\t${BMI}`)
         }
-        
+
+        if(!aiTurn){
+            prompt = `My BMI is ${Math.round(BMI)}. Give me very general health advice in two sentences.`
+
+            try{
+                await getAIResponse(prompt)
+                // await createTalkStream()
+            }catch(error){
+                alert("Please connect to the service first!")
+            }
+        }
 
     }
 
@@ -328,11 +465,11 @@ async function createPeerConnection(offer, iceServers) {
         peerConnection = new RTCPeerConnection({ iceServers });
 
         // Adding event listeners for any event we want to handle
-        // peerConnection.addEventListener(
-        //     "icegatheringstatechange",
-        //     onIceGatheringStateChange,
-        //     true
-        // );
+        peerConnection.addEventListener(
+            "icegatheringstatechange",
+            onIceGatheringStateChange,
+            true
+        );
         peerConnection.addEventListener(
             "icecandidate",
             onIceCandidate,
@@ -378,14 +515,19 @@ async function createPeerConnection(offer, iceServers) {
     return sessionClientAnswer;
 }
 
-async function connect() {
-    // console.log(process.env.DID_API_KEY)
-    let session;
-    if (peerConnection && peerConnection.connectionState === "connected") {
-        return;
+async function connect(imageURL) {
+    if (peerConnection) {
+        closePC();
     }
 
-    session = await fetchWithRetries(`https://api.d-id.com/talks/streams`, {
+    let {offer, iceServers} = await createStream(imageURL)
+
+
+    await createPeerConnection(offer, iceServers);
+}
+
+async function createStream(imageURL){
+    let session = await fetchWithRetries(`https://api.d-id.com/talks/streams`, {
         method: "POST",
         headers: {
             Authorization: `Basic ${await API_KEY}`,
@@ -393,7 +535,7 @@ async function connect() {
         },
         body: JSON.stringify({
             // source_url: `${avatarImage}`,
-            source_url: "https://cdn.pixabay.com/photo/2021/06/04/10/28/portrait-6309448_1280.jpg",
+            source_url: (typeof imageURL === "string") ?  imageURL : "https://cdn.pixabay.com/photo/2021/06/04/10/28/portrait-6309448_1280.jpg" ,
         }),
     });
 
@@ -405,9 +547,13 @@ async function connect() {
     } = await session.json();
     streamId = newStreamId;
     // instanceID.innerText = newStreamId
-    sessionId = newSessionId;
+    sessionId = newSessionId
+    talkStreamConfig.session_id = newSessionId;
 
-    await createPeerConnection(offer, iceServers);
+    return {
+        offer,
+        iceServers
+    }
 }
 
 // talkBtn.addEventListener('click', async (event) => {
@@ -433,7 +579,7 @@ converseBtn.addEventListener('click', async (event) => {
     ){
         if(!aiTurn){
             if(localVideoStream !== null && localAudioStream !== null){
-                videoRecorder.start()
+                // videoRecorder.start()
                 audioRecorder.start()
                 console.log('Recording started...')
                 aiTurn = true
@@ -444,13 +590,15 @@ converseBtn.addEventListener('click', async (event) => {
                 throw new Error('Audio and Video streams are not available!')
             }
         }else{
-            videoRecorder.stop()
+            // videoRecorder.stop()
             audioRecorder.stop()
             console.log('Recording ended...')
             disable(converseBtn)
+            // enable(converseBtn)
             // console.log(`Upload data before POST request: ${uploadData.video_data}`)
             // transcribeAudio(uploadData)
-            aiTurn = false
+            // await createTalkStream()
+            // aiTurn = false
             // formData.forEach(data => console.log(data))
             // formData = new FormData
         }
@@ -471,12 +619,13 @@ converseBtn.addEventListener('click', async (event) => {
     // }else{
     //     videoRecorder.stop()
     //     audioRecorder.stop()
-    //     disable(converseBtn)
-    //     // console.log(`Upload data before POST request: ${uploadData.video_data}`)
-    //     // transcribeAudio(uploadData)
-    //     aiTurn = false
-    //     // formData.forEach(data => console.log(data))
-    //     // formData = new FormData
+    //     // disable(converseBtn)
+    //     enable(converseBtn)
+        // console.log(`Upload data before POST request: ${uploadData.video_data}`)
+        // transcribeAudio(uploadData)
+        // aiTurn = false
+        // formData.forEach(data => console.log(data))
+        // formData = new FormData
     // }
 
 
@@ -515,15 +664,21 @@ async function onIceCandidate(event) {
                 sdpMLineIndex,
                 session_id: sessionId,
             }),
-        });
+        }, 2);
     }
 }
 
-// function onIceGatheringStateChange() {
-//     iceGathering.innerText = peerConnection?.iceGatheringState
-// }
+async function onIceGatheringStateChange() {
+    // console.log(peerConnection?.iceGatheringState)
+    if(peerConnection?.iceGatheringState === "complete"){
+        talkStreamConfig.config.driver_expressions.expressions[0].expression = "happy"
+        talkStreamConfig.script.input = "Hello! How may I help you?"
+        // await createTalkStream()
+        setTimeout(async () => await createTalkStream(), 2e3)
+    }
+}
 
-function onIceConnectionStateChange() {
+async function onIceConnectionStateChange() {
     // peerConnection?.iceConnectionState
     if (
         peerConnection?.iceConnectionState === "failed" ||
@@ -531,36 +686,47 @@ function onIceConnectionStateChange() {
     ) {
         stopAllStreams();
     }
+        // else if(peerConnection.iceConnectionState === "completed"){
+    //     console.log('Ice connection state completed')
+    //     talkStreamConfig.config.driver_expressions.expressions[0].expression = "happy"
+    //     talkStreamConfig.script.input = "Hello! How may I help you?"
+    //     await createTalkStream()
+    // }
 }
 
 async function onConnectionStateChange() {
     // peerConnStatus.innerText = peerConnection?.connectionState
     if(peerConnection?.connectionState === "connected"){
-        show(document.getElementById('status__connected'))
-        hide(document.getElementById('status__disconnected'))
-        await createTalkStream("Hello! How may I be of assistance")
+        show(connectedBtn)
+        hide(disconnectedBtn)
         enable(converseBtn)
-    }else{
-        hide(document.getElementById('status__connected'))
-        show(document.getElementById('status__disconnected'))
-        disable(converseBtn)
+        // talkStreamConfig.config.driver_expressions.expressions[0].expression = "happy"
+        // talkStreamConfig.script.input = "Hello! How may I help you?"
+        // await createTalkStream()
     }
 }
 
-function onSignalingStateChange() {
+async function onSignalingStateChange() {
     // signalStatus.innerText = peerConnection?.signalingState
     // peerConnection?.signalingState === "stable" ? showGreen(signalStatus) : null
+    // if(peerConnection.signalingState === "stable"){
+    //     talkStreamConfig.config.driver_expressions.expressions[0].expression = "happy"
+    //     talkStreamConfig.script.input = "Hello! How may I help you?"
+    //     await createTalkStream()
+    //     // setTimeout(async () => await createTalkStream(), 0.1e3)
+    // }
 }
 
 function onVideoStatusChange(videoIsPlaying, stream) {
-    let status;
+    // let status;
     if (videoIsPlaying) {
         // status = "streaming";
-        const remoteStream = stream;
-        setVideoElement(remoteStream);
+        setVideoElement(stream);
+        disable(converseBtn)
     } else {
         // status = "empty";
         enable(converseBtn)
+        aiTurn = false
         // playIdleVideo();
     }
     // streamStatus.innerText = status;
@@ -600,11 +766,30 @@ function setVideoElement(stream) {
 }
 
 function stopAllStreams() {
-    if (aiVideo?.srcObject) {
-        // console.log("stopping video streams");
+    videoRecorder.stop()
+    audioRecorder.stop()
+
+    if (aiVideo.srcObject) {
+        console.log("stopping remote video streams");
         let mediaStream = aiVideo.srcObject;
-        mediaStream.getTracks().forEach((track) => track.stop());
+        mediaStream.getTracks().forEach((track) => {
+            track.stop()
+        });
         aiVideo.srcObject = null;
+
+        // console.log(localVideoStream)
+
+    }
+    if(localVideoStream.getTracks() && localAudioStream.getTracks()){
+        console.log("stopping remote video streams");
+        localVideoStream.getTracks().forEach((track) => {
+            console.log(`Stopping track ${track}`)
+            track.stop()
+        })
+        localAudioStream.getTracks().forEach((track) => {
+            console.log(`Stopping track ${track}`)
+            track.stop()
+        })
     }
 }
 
@@ -612,7 +797,7 @@ function closePC(pc = peerConnection) {
     if (!pc) return;
     console.log('stopping peer connection');
     pc.close();
-    // pc.removeEventListener('icegatheringstatechange', onIceGatheringStateChange, true);
+    pc.removeEventListener('icegatheringstatechange', onIceGatheringStateChange, true);
     pc.removeEventListener('icecandidate', onIceCandidate, true);
     pc.removeEventListener('iceconnectionstatechange', onIceConnectionStateChange, true);
     pc.removeEventListener('connectionstatechange', onConnectionStateChange, true);
@@ -624,66 +809,74 @@ function closePC(pc = peerConnection) {
     // iceStatusLabel.innerText = '';
     // peerConnStatus.innerText = '';
     console.log('stopped peer connection');
+    hide(connectedBtn)
+    show(disconnectedBtn)
+    disable(converseBtn)
     if (pc === peerConnection) {
         peerConnection = null;
     }
 }
 
 async function getAIResponse(text){
-    let aiResponse = axios
-        .post(`${URL}/response`, {transcribed_text: text})
+    talkStreamConfig.script.input = await axios
+        .post(`${BACKENDURL}/response`, {transcribed_text: text})
         .then(response => {
             return response.data
         })
         .catch(error => console.log(error))
 
-    return aiResponse
+    try{
+        await createTalkStream()
+    }catch(error){
+
+    }
+    // return
 }
 
-async function createTalkStream(textInput){
-    if(!streamId){
+async function createTalkStream(){
+    if(!sessionId){
         throw new Error('Session ID does not exist!')
     }
     const options = {
         method: 'POST',
-        url: `https://api.d-id.com/talks/streams/${streamId}`,
+        // url: `https://api.d-id.com/talks/streams/${streamId}`,
         headers: {
             accept: 'application/json',
             'content-type': 'application/json',
             authorization: `Basic ${await API_KEY}`
         },
-        data: {
-            script: {
-                type: 'text',
-                subtitles: false,
-                provider: {type: 'microsoft', voice_id: 'en-US-JasonNeural'},
-                ssml: false,
-                input: textInput
-            },
-            config: {
-                fluent: false,
-                pad_audio: 0.0,
-                stitch: true,
-                driver_expressions: {
-                    expressions: [{
-                        expression: "happy",
-                        start_frame: 0,
-                        intensity: 0.4
-                    }]
-                }},
-            session_id: sessionId
-        }
+        data: JSON.stringify(talkStreamConfig)
     };
 
-    axios
-        .request(options)
-        .then(function (response) {
-            return null;
-        })
-        .catch(function (error) {
-            console.error(error);
-            enable(converseBtn)
-        });
+    if(!videoIsPlaying){
+        // axios
+        //     .request(options)
+        //     .then(function (response) {
+        //         return null;
+        //     })
+        //     .catch(function (error) {
+        //         console.error(error);
+        //         enable(converseBtn)
+        //     });
+        try{
+            await fetchWithRetries(`https://api.d-id.com/talks/streams/${streamId}`, {
+                method: 'POST',
+                // url: `https://api.d-id.com/talks/streams/${streamId}`,
+                headers: {
+                    accept: 'application/json',
+                    'content-type': 'application/json',
+                    authorization: `Basic ${await API_KEY}`
+                },
+                body: JSON.stringify(talkStreamConfig)
+            }, 1)
+        }catch(error){
+            alert('Failed to create ai response')
+        }
+
+    }
+    else{
+        throw new Error("Another stream is in progress")
+    }
     //
     // axios
     //     .request(options)
@@ -692,22 +885,18 @@ async function createTalkStream(textInput){
 }
 
 function checkInputIsValid(element){
-    if(isNaN(Number(element.value)) || !element.value){
-        return false
-    }else{
-        return true
-    }
+    return !(isNaN(Number(element.value)) || !element.value);
 }
 
-function showValid(element){
-    if(!checkInputIsValid(element)){
-        element.classList.remove("focus:outline-none")
-        element.classList.add("outline", "outline-offset-2", "outline-red-600", "focus:outline-red-600")
-    }else{
-        element.classList.remove("outline", "outline-offset-2", "outline-red-600", "focus:outline-red-600")
-        element.classList.add("focus:outline-none")
-    }
-}
+// function showValid(element){
+//     if(!checkInputIsValid(element)){
+//         element.classList.remove("focus:outline-none")
+//         element.classList.add("outline", "outline-offset-2", "outline-red-600", "focus:outline-red-600")
+//     }else{
+//         element.classList.remove("outline", "outline-offset-2", "outline-red-600", "focus:outline-red-600")
+//         element.classList.add("focus:outline-none")
+//     }
+// }
 
 function switchUnits(){
     if(currentUnit==="US"){
@@ -717,4 +906,100 @@ function switchUnits(){
         document.getElementById("bmi__weight_unit").innerText = "kg"
         document.getElementById("bmi__height_unit").innerText = "m"
     }
+}
+
+async function queryEmotions(emotion){
+    // console.log(emotion)
+
+    talkStreamConfig.config.driver_expressions.expressions[0].expression = !(emotion==="happy") ? "serious" : emotion
+    prompt = `I want you to act concerned by asking 2 questions. Reply like it was something you noticed.
+
+                                            My emotion is ${emotion}`
+    if(emotion==="happy" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+        console.log("The user is happy!")
+        if(!userHappy){
+            userHappy = true
+            await getAIResponse(prompt)
+        }
+    }
+    else if(emotion==="sad" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+        if(!userSad){
+            userSad = true
+            await getAIResponse(prompt)
+        }
+    }
+    else if(emotion==="fear" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+        if(!userFear){
+            userFear = true
+            await getAIResponse(prompt)
+        }
+    }
+    else if(emotion==="angry" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+        if(!userAngry){
+            userAngry = true
+            await getAIResponse(prompt)
+        }
+    }
+}
+
+async function createOptions(){
+    axios
+        .get("https://api.d-id.com/tts/voices?provider=microsoft", {
+            headers: {
+                "accept": "application/json",
+                "Authorization": `Basic ${await API_KEY}`
+            }
+        })
+        .then(response => {
+            response.data.forEach(voice => {
+            //     // console.log(`Name: ${voice.name}\t | \t Accent: ${voice.labels.accent} \t | \t Gender: ${voice.labels.gender}`)
+                let opt = document.createElement('option')
+                opt.text = `${voice.name}\t|\t${voice.gender.toUpperCase()}\t|\t${voice.language.split(" ", 1)[0].toUpperCase()}`
+                opt.value = voice.id
+            //     // opt.data-tooltip-target = "tooltip-default"
+                voiceSelect.add(opt)
+            })
+            // response.data.forEach(voice => {
+            //     console.log(voice)
+            // })
+        })
+        .catch(error => console.log(error.toString()))
+}
+
+// async function
+
+function processImage(event) {
+    // document.querySelector('#__ai_mixing_btn').textContent = 'Generate Mastered Song'
+    // Object.values(event.target.files).forEach(async file => formData.append(file.name, await file.arrayBuffer()))
+    let imageFile = event.target.files[0]
+    let reader = new FileReader()
+    reader.readAsBinaryString(imageFile);
+
+    reader.onload = () => {
+        formData.append("image", imageFile)
+    }
+
+    // console.log(event.target.files)
+
+
+}
+
+async function submitSettings(){
+    // formData.forEach(data => console.log(data))
+    // console.log(formData.has("image"))
+    if(formData.has("image")){
+        axios
+            .post(`${BACKENDURL}/image_upload`, formData)
+            .then(async response => {
+                // console.log(response.data)
+                // !sessionId ? await connect(response.data) : await createStream(response.data)
+                await connect(response.data)
+                document.getElementById("settings").classList.add('hidden')
+            })
+            .catch(error => console.log(error.toString()))
+    }else{
+        // !sessionId ? await connect() : null
+        document.getElementById("settings").classList.add('hidden')
+    }
+
 }
