@@ -228,60 +228,59 @@ function enable(element){
     }
 
     try{
-        const constraints = {
-            audio: true,
-            video: {
-                facingMode: {exact: 'user'},
-                width: 500,
-                height: 500
-            }
-        }
-        localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
+        // const constraints = {
+        //     video: {
+        //         facingMode: {exact: 'user'},
+        //         width: 500,
+        //         height: 500
+        //     }
+        // }
+        // localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
         localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
 
 
 
         // talkVideo.srcObject = localVideoStream
-        videoRecorder = new MediaRecorder(localVideoStream)
+        // videoRecorder = new MediaRecorder(localVideoStream)
         audioRecorder = new MediaRecorder(localAudioStream)
 
         // videoRecorder.start(60e3)
 
-        videoRecorder.ondataavailable = async (event) => {
-            let formData = new FormData()
-            formData.append('video', event.data)
-            // sock.emit('stream', {data: event.data, kind: 'video'})
-            // sock.send({data: event.data, kind: 'video'})
-            // console.log(`Data type: ${typeof event.data}`)
-            // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
-            // videoChunks.push(event.data)
-
-            // axios
-            //     .post(`${URL}/stream`, {
-            //         kind: 'video',
-            //         data: videoChunks.pop()
-            //     })
-            //     .then(response => console.log(response))
-            //     .catch(error => console.log(error))
-
-            // let img = new Image()
-            // img.src = URL.createObjectURL(event.data)
-            // // URL.createObjectURL()
-            // console.log(img)
-
-            axios
-                .post(`${BACKENDURL}/video_stream`, formData)
-                .then(async (response) => {
-                    // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
-                    // console.log()
-
-                    await queryEmotions(response.data[0])
-                    // console.log(talkStreamConfig)
-                })
-                .catch(error => console.log(error))
-
-            // videoChunks = []
-        }
+        // videoRecorder.ondataavailable = async (event) => {
+        //     let formData = new FormData()
+        //     formData.append('video', event.data)
+        //     // sock.emit('stream', {data: event.data, kind: 'video'})
+        //     // sock.send({data: event.data, kind: 'video'})
+        //     // console.log(`Data type: ${typeof event.data}`)
+        //     // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
+        //     // videoChunks.push(event.data)
+        //
+        //     // axios
+        //     //     .post(`${URL}/stream`, {
+        //     //         kind: 'video',
+        //     //         data: videoChunks.pop()
+        //     //     })
+        //     //     .then(response => console.log(response))
+        //     //     .catch(error => console.log(error))
+        //
+        //     // let img = new Image()
+        //     // img.src = URL.createObjectURL(event.data)
+        //     // // URL.createObjectURL()
+        //     // console.log(img)
+        //
+        //     axios
+        //         .post(`${BACKENDURL}/video_stream`, formData)
+        //         .then(async (response) => {
+        //             // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
+        //             // console.log()
+        //
+        //             await queryEmotions(response.data[0])
+        //             // console.log(talkStreamConfig)
+        //         })
+        //         .catch(error => console.log(error))
+        //
+        //     // videoChunks = []
+        // }
 
         audioRecorder.ondataavailable = async (event) => {
             // socket.send(event.data)
