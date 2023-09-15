@@ -148,6 +148,14 @@ function enable(element){
     element.disabled = false
 }
 
+function changeUploadLabel(fileName){
+    // document.querySelector('#settings__image_label i').classList.remove('fa-cloud-upload-alt')
+    // document.querySelector('#settings__image_label i').classList.add('fa-file-alt')
+    document.querySelector('#settings__image_label').innerHTML = `<i class="fas fa-file-alt text-2xl text-gray-300 mx-3"
+                           id="file_upload_icon"
+                        ></i> ${fileName}`
+}
+
 (async function() {
     disable(converseBtn)
     await createOptions()
@@ -204,7 +212,11 @@ function enable(element){
         talkStreamConfig.script.provider.voice_id = voiceSelect.options[voiceSelect.selectedIndex].value
     }
 
-    imgInput.onchange = (event) => formData.append("image", event.target.files[0])
+    imgInput.onchange = (event) => {
+        // document.getElementById('settings__image_label').innerText = event.dataTransfer.files[0].name
+        changeUploadLabel(event.dataTransfer.files[0].name)
+        formData.append("image", event.target.files[0])
+    }
     // imgInput.onchange = (event) => processImage(event)
     settingsSubmit.onclick = () => submitSettings()
 
@@ -224,6 +236,7 @@ function enable(element){
     imgLabel.ondrop = (event) => {
         event.stopPropagation()
         event.preventDefault()
+        changeUploadLabel(event.dataTransfer.files[0].name)
         formData.append("image", event.dataTransfer.files[0])
     }
 
