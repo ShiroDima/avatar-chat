@@ -10,7 +10,7 @@
 //     return await config
 // }
 
-let ENV = 'production'
+let ENV = 'local'
 let BACKENDURL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
 let API_KEY = axios
     .post(`${BACKENDURL}/get_key`)
@@ -214,7 +214,7 @@ function changeUploadLabel(fileName){
 
     imgInput.onchange = (event) => {
         // document.getElementById('settings__image_label').innerText = event.dataTransfer.files[0].name
-        changeUploadLabel(event.dataTransfer.files[0].name)
+        changeUploadLabel(event.target.files[0].name)
         formData.append("image", event.target.files[0])
     }
     // imgInput.onchange = (event) => processImage(event)
@@ -241,59 +241,59 @@ function changeUploadLabel(fileName){
     }
 
     try{
-        // const constraints = {
-        //     video: {
-        //         facingMode: {exact: 'user'},
-        //         width: 500,
-        //         height: 500
-        //     }
-        // }
-        // localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
+        const constraints = {
+            video: {
+                facingMode: {exact: 'user'},
+                width: 500,
+                height: 500
+            }
+        }
+        localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
         localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
 
 
 
         // talkVideo.srcObject = localVideoStream
-        // videoRecorder = new MediaRecorder(localVideoStream)
+        videoRecorder = new MediaRecorder(localVideoStream)
         audioRecorder = new MediaRecorder(localAudioStream)
 
-        // videoRecorder.start(60e3)
+        videoRecorder.start(30e3)
 
-        // videoRecorder.ondataavailable = async (event) => {
-        //     let formData = new FormData()
-        //     formData.append('video', event.data)
-        //     // sock.emit('stream', {data: event.data, kind: 'video'})
-        //     // sock.send({data: event.data, kind: 'video'})
-        //     // console.log(`Data type: ${typeof event.data}`)
-        //     // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
-        //     // videoChunks.push(event.data)
-        //
-        //     // axios
-        //     //     .post(`${URL}/stream`, {
-        //     //         kind: 'video',
-        //     //         data: videoChunks.pop()
-        //     //     })
-        //     //     .then(response => console.log(response))
-        //     //     .catch(error => console.log(error))
-        //
-        //     // let img = new Image()
-        //     // img.src = URL.createObjectURL(event.data)
-        //     // // URL.createObjectURL()
-        //     // console.log(img)
-        //
-        //     axios
-        //         .post(`${BACKENDURL}/video_stream`, formData)
-        //         .then(async (response) => {
-        //             // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
-        //             // console.log()
-        //
-        //             await queryEmotions(response.data[0])
-        //             // console.log(talkStreamConfig)
-        //         })
-        //         .catch(error => console.log(error))
-        //
-        //     // videoChunks = []
-        // }
+        videoRecorder.ondataavailable = async (event) => {
+            let formData = new FormData()
+            formData.append('video', event.data)
+            // sock.emit('stream', {data: event.data, kind: 'video'})
+            // sock.send({data: event.data, kind: 'video'})
+            // console.log(`Data type: ${typeof event.data}`)
+            // console.log(`Video Chunks: ${await event.data.arrayBuffer()[0]}`)
+            // videoChunks.push(event.data)
+
+            // axios
+            //     .post(`${URL}/stream`, {
+            //         kind: 'video',
+            //         data: videoChunks.pop()
+            //     })
+            //     .then(response => console.log(response))
+            //     .catch(error => console.log(error))
+
+            // let img = new Image()
+            // img.src = URL.createObjectURL(event.data)
+            // // URL.createObjectURL()
+            // console.log(img)
+
+            axios
+                .post(`${BACKENDURL}/video_stream`, formData)
+                .then(async (response) => {
+                    // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
+                    console.log(response.data[0])
+
+                    await queryEmotions(response.data[0])
+                    // console.log(talkStreamConfig)
+                })
+                .catch(error => console.log(error))
+
+            // videoChunks = []
+        }
 
         audioRecorder.ondataavailable = async (event) => {
             // socket.send(event.data)
