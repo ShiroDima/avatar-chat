@@ -214,7 +214,6 @@ function changeUploadLabel(fileName){
 
     imgInput.onchange = (event) => {
         // document.getElementById('settings__image_label').innerText = event.dataTransfer.files[0].name
-        console.log(event.target.files[0])
         changeUploadLabel(event.target.files[0].name)
         formData.append("image", event.target.files[0])
     }
