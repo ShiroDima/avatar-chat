@@ -10,7 +10,7 @@
 //     return await config
 // }
 
-let ENV = 'local'
+let ENV = 'production'
 let BACKENDURL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
 let API_KEY = axios
     .post(`${BACKENDURL}/get_key`)
