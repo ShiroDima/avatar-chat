@@ -7,7 +7,7 @@
 //     return await config
 // }
 
-let ENV = 'production'
+let ENV = 'local'
 let BACKENDURL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
 let API_KEY = axios
     .post(`${BACKENDURL}/get_key`)
@@ -25,6 +25,7 @@ let lastBytesReceived
 let localVideoStream
 let localAudioStream
 let videoRecorder
+let languageName = new Intl.DisplayNames(['en'], {type: 'language'})
 let audioRecorder
 let imageFormData = new FormData()
 let currentUnit = "SI"
@@ -53,7 +54,7 @@ let userHappy = false
 let userSad = false
 let userAngry = false
 let userFear = false
-
+let language = 'English'
 let aiTurn = false
 
 // Talk Button Element
@@ -155,6 +156,7 @@ function changeUploadLabel(fileName){
         connect()
         startAllStreams()
     }
+
     connectedBtn.onclick = async () => {
         await fetch(`https://api.d-id.com/talks/streams/${streamId}`, {
             method: "DELETE",
@@ -193,6 +195,10 @@ function changeUploadLabel(fileName){
         // talkStreamConfig.script.provider.type = "amazon"
         // console.log(voiceSelect.options[voiceSelect.selectedIndex].text.split(" ", 1))
         talkStreamConfig.script.provider.voice_id = voiceSelect.options[voiceSelect.selectedIndex].value
+        // console.log(language)
+        language = voiceSelect.options[voiceSelect.selectedIndex].text.split(' | ')[2] == "ARABIC" ? "ar" : "en"
+        // console.log(voiceSelect.options[voiceSelect.selectedIndex].text.split(' | ')[3])
+        // console.log(language)
     }
 
     imgInput.onchange = (event) => {
@@ -310,7 +316,7 @@ converseBtn.addEventListener('click', async (event) => {
         peerConnection?.iceConnectionState === "connected"
     ){
         if(!aiTurn){
-            if(localVideoStream !== null && localAudioStream !== null){
+            if(localAudioStream !== null){
                 console.log(audioRecorder)
                 audioRecorder.start()
                 console.log('Recording started...')
@@ -388,17 +394,20 @@ async function startAllStreams(){
         formData.append('audio', event.data)
 
         axios
-            .post(`${BACKENDURL}/audio_stream`, formData)
+            .post(`${BACKENDURL}/audio_stream/?language=${language}`, formData)
             .then(async (response) => {
                 await getAIResponse(response.data)
             })
-            .catch(error => console.log(error))
+            .catch(error => {
+                console.log(error)
+                enable(converseBtn)
+            })
 
     }
 }
 
 function stopAllStreams() {
-    //videoRecorder.stop()
+    // videoRecorder.stop()
     audioRecorder.stop()
 
     if (aiVideo.srcObject) {
@@ -412,13 +421,18 @@ function stopAllStreams() {
         // console.log(localVideoStream)
 
     }
-    //localVideoStream.getTracks()
+    // if(localVideoStream.getTracks() && localAudioStream.getTracks()){
+    //     console.log("stopping remote video streams");
+    //     localVideoStream.getTracks().forEach((track) => {
+    //         console.log(`Stopping track ${track}`)
+    //         track.stop()
+    //     })
+    //     localAudioStream.getTracks().forEach((track) => {
+    //         console.log(`Stopping track ${track}`)
+    //         track.stop()
+    //     })
+    // }
     if(localAudioStream.getTracks()){
-        console.log("stopping remote video streams");
-        // localVideoStream.getTracks().forEach((track) => {
-        //     console.log(`Stopping track ${track}`)
-        //     track.stop()
-        // })
         localAudioStream.getTracks().forEach((track) => {
             console.log(`Stopping track ${track}`)
             track.stop()
@@ -428,7 +442,7 @@ function stopAllStreams() {
 
 async function getAIResponse(text){
     talkStreamConfig.script.input = await axios
-        .post(`${BACKENDURL}/response`, {transcribed_text: text})
+        .post(`${BACKENDURL}/response`, {transcribed_text: text, language: languageName.of(language)})
         .then(response => {
             return response.data
         })
@@ -446,27 +460,8 @@ async function createTalkStream(){
     if(!sessionId){
         throw new Error('Session ID does not exist!')
     }
-    const options = {
-        method: 'POST',
-        // url: `https://api.d-id.com/talks/streams/${streamId}`,
-        headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            authorization: `Basic ${await API_KEY}`
-        },
-        data: JSON.stringify(talkStreamConfig)
-    };
 
     if(!videoIsPlaying){
-        // axios
-        //     .request(options)
-        //     .then(function (response) {
-        //         return null;
-        //     })
-        //     .catch(function (error) {
-        //         console.error(error);
-        //         enable(converseBtn)
-        //     });
         try{
             await fetchWithRetries(`https://api.d-id.com/talks/streams/${streamId}`, {
                 method: 'POST',
@@ -486,15 +481,6 @@ async function createTalkStream(){
     else{
         throw new Error("Another stream is in progress")
     }
-    //
-    // axios
-    //     .request(options)
-    //     .then(response => console.log(response))
-    //     .catch(error => console.log(error))
-}
-
-function checkInputIsValid(element){
-    return !(isNaN(Number(element.value)) || !element.value);
 }
 
 function switchUnits(){
@@ -551,10 +537,12 @@ async function createOptions(){
         })
         .then(response => {
             response.data.forEach(voice => {
-                let opt = document.createElement('option')
-                opt.text = `${voice.name}\t|\t${voice.gender.toUpperCase()}\t|\t${voice.language.split(" ", 1)[0].toUpperCase()}`
-                opt.value = voice.id
-                voiceSelect.add(opt)
+                if(voice.language.includes('English') || voice.language.includes('Arabic')){
+                    let opt = document.createElement('option')
+                    opt.text = `${voice.name}\t|\t${voice.gender.toUpperCase()}\t|\t${voice.language.split(" ", 1)[0].toUpperCase()}`
+                    opt.value = voice.id
+                    voiceSelect.add(opt)
+                }
             })
         })
         .catch(error => console.log(error.toString()))

@@ -160,9 +160,6 @@ async function createPeerConnection(offer, iceServers) {
             }),
         }
     );
-
-    console.log('Peer Connection created')
-    console.log(await peerConnection?.getStats())
     return sessionClientAnswer;
 }
 
