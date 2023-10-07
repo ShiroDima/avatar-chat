@@ -1,0 +1,16 @@
+.wave .bar {
+    width: 5px;
+    height: 30px;
+    border-radius: 10px;
+    background: #D1D5DB;
+    /*animation: movement 0.5s ease-in infinite;*/
+}
+
+@keyframes movement{
+    0%, 100% {
+        height:2px;
+    }
+    50% {
+        height: 30px;
+    }
+}

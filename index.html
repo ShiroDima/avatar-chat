@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.0/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="index.css" />
 </head>
 
 <body class="bg-slate-300">
@@ -29,7 +30,7 @@
                            autoplay playsinline>
                     </video>
                 </div>
-                <div class="w-[60%] bg-gray-400 p-2 shadow-2xl rounded">
+                <div class="w-[70%] bg-gray-400 p-2 shadow-2xl rounded">
                     <div class="grid grid-flow-col gap-20 mb-2 justify-between">
                         <div class="flex p-2 justify-center items-center">
                             <button class="hidden h-full text-[18px] font-bold text-green-500" id="status__connect">Connected
@@ -46,18 +47,21 @@
                             Connect
                         </button>
                     </div> -->
-                        <!--                <div>-->
-                        <!--                    <button-->
-                        <!--                            class="w-[85px] disabled backdrop:border-solid border-2 border-[#1E293B] hover:bg-[#1E293B] hover:text-white p-2"-->
-                        <!--                            type="button"-->
-                        <!--                            id="talk-button"-->
-                        <!--                    >-->
-                        <!--                        Start-->
-                        <!--                    </button>-->
-                        <!--                </div>-->
-                        <div class="flex items-center justify-between w-[300px]">
+                        <div class="flex items-center w-[400px]">
+                            <div class="wave inline-flex items-center justify-between relative w-[300px]">
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                                <div class="bar"></div>
+                            </div>
                             <button
-                                    class="w-[250px] bg-gray-300 rounded font-bold text-lg border-[#1E293B] enabled:hover:bg-gray-500 p-2 shadow-2xl"
+                                    class="w-[250px] mx-5 bg-gray-300 rounded font-bold text-lg border-[#1E293B] enabled:hover:bg-gray-500 p-2 shadow-2xl"
                                     type="button" id="converse-button">
                                 Converse
                             </button>
@@ -74,7 +78,7 @@
                     </div> -->
                     </div>
                     <div class="flex justify-center">
-                        <div id="bmi" class="w-[80%]">
+                        <div id="bmi" class="w-[60%]">
                             <div class="flex">
                                 <h2 class="text-[50px]">BMI</h2>
                                 <div class="inline-flex ml-3 items-center justify-center" id="bmi__unit_select">
@@ -173,7 +177,7 @@
         </div>
     </div>
 
-
+    <script src="webrtc.js"></script>
     <script src="index.js"></script>
 </body>
 
