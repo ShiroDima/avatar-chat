@@ -398,7 +398,7 @@ async function startAllStreams(){
 }
 
 function stopAllStreams() {
-    videoRecorder.stop()
+    //videoRecorder.stop()
     audioRecorder.stop()
 
     if (aiVideo.srcObject) {
@@ -412,12 +412,13 @@ function stopAllStreams() {
         // console.log(localVideoStream)
 
     }
-    if(localVideoStream.getTracks() && localAudioStream.getTracks()){
+    //localVideoStream.getTracks()
+    if(localAudioStream.getTracks()){
         console.log("stopping remote video streams");
-        localVideoStream.getTracks().forEach((track) => {
-            console.log(`Stopping track ${track}`)
-            track.stop()
-        })
+        // localVideoStream.getTracks().forEach((track) => {
+        //     console.log(`Stopping track ${track}`)
+        //     track.stop()
+        // })
         localAudioStream.getTracks().forEach((track) => {
             console.log(`Stopping track ${track}`)
             track.stop()
