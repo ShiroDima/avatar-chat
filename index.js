@@ -355,32 +355,32 @@ async function startAllStreams(){
             height: 500
         }
     }
-    localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
+    // localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
     localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
 
 
 
     // talkVideo.srcObject = localVideoStream
-    videoRecorder = new MediaRecorder(localVideoStream)
+    // videoRecorder = new MediaRecorder(localVideoStream)
     audioRecorder = new MediaRecorder(localAudioStream)
 
-    videoRecorder.start(60e3)
-
-    videoRecorder.ondataavailable = async (event) => {
-        let formData = new FormData()
-        formData.append('video', event.data)
-        axios
-            .post(`${BACKENDURL}/video_stream`, formData)
-            .then(async (response) => {
-                // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
-                // console.log(response.data[0])
-
-                await queryEmotions(response.data[0])
-                // console.log(talkStreamConfig)
-            })
-            .catch(error => console.log(error))
-
-    }
+    // videoRecorder.start(60e3)
+    //
+    // videoRecorder.ondataavailable = async (event) => {
+    //     let formData = new FormData()
+    //     formData.append('video', event.data)
+    //     axios
+    //         .post(`${BACKENDURL}/video_stream`, formData)
+    //         .then(async (response) => {
+    //             // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
+    //             // console.log(response.data[0])
+    //
+    //             await queryEmotions(response.data[0])
+    //             // console.log(talkStreamConfig)
+    //         })
+    //         .catch(error => console.log(error))
+    //
+    // }
 
     audioRecorder.ondataavailable = async (event) => {
         // socket.send(event.data)
