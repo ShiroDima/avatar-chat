@@ -401,6 +401,7 @@ async function startAllStreams(){
             .catch(error => {
                 console.log(error)
                 enable(converseBtn)
+                aiTurn = false
             })
 
     }
