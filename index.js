@@ -8,7 +8,7 @@
 // }
 
 let ENV = 'production'
-let BACKENDURL = ENV==='local' ? 'http://127.0.0.1:8000': "https://bpfrhiahgezoa2hkzquyu534q40ypvzj.lambda-url.us-east-1.on.aws"
+let BACKENDURL = ENV ==='local' ? 'http://127.0.0.1': "https://api.talk2mays.com"
 let API_KEY = axios
     .post(`${BACKENDURL}/get_key`)
     .then(response => {return response.data})
@@ -54,7 +54,7 @@ let userHappy = false
 let userSad = false
 let userAngry = false
 let userFear = false
-let language = 'English'
+let language = 'en'
 let aiTurn = false
 
 // Talk Button Element
@@ -317,7 +317,6 @@ converseBtn.addEventListener('click', async (event) => {
     ){
         if(!aiTurn){
             if(localAudioStream !== null){
-                console.log(audioRecorder)
                 audioRecorder.start()
                 console.log('Recording started...')
                 let val = 1
@@ -343,8 +342,6 @@ converseBtn.addEventListener('click', async (event) => {
             disable(converseBtn)
         }
     }
-
-
 })
 
 function setVideoElement(stream) {
@@ -361,32 +358,32 @@ async function startAllStreams(){
             height: 500
         }
     }
-    // localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
+    localVideoStream = await navigator.mediaDevices.getUserMedia(constraints)
     localAudioStream = await navigator.mediaDevices.getUserMedia({audio: true})
 
 
 
     // talkVideo.srcObject = localVideoStream
-    // videoRecorder = new MediaRecorder(localVideoStream)
+    videoRecorder = new MediaRecorder(localVideoStream)
     audioRecorder = new MediaRecorder(localAudioStream)
 
-    // videoRecorder.start(60e3)
+    videoRecorder.start(120e3)
     //
-    // videoRecorder.ondataavailable = async (event) => {
-    //     let formData = new FormData()
-    //     formData.append('video', event.data)
-    //     axios
-    //         .post(`${BACKENDURL}/video_stream`, formData)
-    //         .then(async (response) => {
-    //             // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
-    //             // console.log(response.data[0])
-    //
-    //             await queryEmotions(response.data[0])
-    //             // console.log(talkStreamConfig)
-    //         })
-    //         .catch(error => console.log(error))
-    //
-    // }
+    videoRecorder.ondataavailable = async (event) => {
+        let formData = new FormData()
+        formData.append('video', event.data)
+        axios
+            .post(`${BACKENDURL}/video_stream`, formData)
+            .then(async (response) => {
+                // talkStreamConfig.config.driver_expressions.expressions[0].expression = response.data[0]
+                // console.log(response.data[0])
+
+                await queryEmotions(response.data[0])
+                // console.log(talkStreamConfig)
+            })
+            .catch(error => console.log(error))
+
+    }
 
     audioRecorder.ondataavailable = async (event) => {
         // socket.send(event.data)
@@ -408,7 +405,7 @@ async function startAllStreams(){
 }
 
 function stopAllStreams() {
-    // videoRecorder.stop()
+    videoRecorder.stop()
     audioRecorder.stop()
 
     if (aiVideo.srcObject) {
@@ -422,23 +419,23 @@ function stopAllStreams() {
         // console.log(localVideoStream)
 
     }
-    // if(localVideoStream.getTracks() && localAudioStream.getTracks()){
-    //     console.log("stopping remote video streams");
-    //     localVideoStream.getTracks().forEach((track) => {
-    //         console.log(`Stopping track ${track}`)
-    //         track.stop()
-    //     })
-    //     localAudioStream.getTracks().forEach((track) => {
-    //         console.log(`Stopping track ${track}`)
-    //         track.stop()
-    //     })
-    // }
-    if(localAudioStream.getTracks()){
+    if(localVideoStream.getTracks() && localAudioStream.getTracks()){
+        console.log("stopping remote video streams");
+        localVideoStream.getTracks().forEach((track) => {
+            console.log(`Stopping track ${track}`)
+            track.stop()
+        })
         localAudioStream.getTracks().forEach((track) => {
             console.log(`Stopping track ${track}`)
             track.stop()
         })
     }
+    // if(localAudioStream.getTracks()){
+    //     localAudioStream.getTracks().forEach((track) => {
+    //         console.log(`Stopping track ${track}`)
+    //         track.stop()
+    //     })
+    // }
 }
 
 async function getAIResponse(text){
@@ -452,7 +449,7 @@ async function getAIResponse(text){
     try{
         await createTalkStream()
     }catch(error){
-
+        console.log(error)
     }
     // return
 }
@@ -501,29 +498,31 @@ async function queryEmotions(emotion){
     prompt = `I want you to act concerned by asking 2 questions. Reply like it was something you noticed.
 
                                             My emotion is ${emotion}`
-    if(emotion==="happy" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
-        // console.log("The user is happy!")
-        if(!userHappy){
-            userHappy = true
-            await getAIResponse(prompt)
+    if(!(aiVideo.srcObject===null) || !videoIsPlaying){
+        if(emotion==="happy"){
+            // console.log("The user is happy!")
+            if(!userHappy){
+                userHappy = true
+                await getAIResponse(prompt)
+            }
         }
-    }
-    else if(emotion==="sad" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
-        if(!userSad){
-            userSad = true
-            await getAIResponse(prompt)
+        else if(emotion==="sad" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+            if(!userSad){
+                userSad = true
+                await getAIResponse(prompt)
+            }
         }
-    }
-    else if(emotion==="fear" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
-        if(!userFear){
-            userFear = true
-            await getAIResponse(prompt)
+        else if(emotion==="fear" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+            if(!userFear){
+                userFear = true
+                await getAIResponse(prompt)
+            }
         }
-    }
-    else if(emotion==="angry" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
-        if(!userAngry){
-            userAngry = true
-            await getAIResponse(prompt)
+        else if(emotion==="angry" && (!(aiVideo.srcObject===null) || !videoIsPlaying)){
+            if(!userAngry){
+                userAngry = true
+                await getAIResponse(prompt)
+            }
         }
     }
 }
