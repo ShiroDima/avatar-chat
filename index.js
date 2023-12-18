@@ -8,7 +8,7 @@
 // }
 
 let ENV = 'production'
-let BACKENDURL = ENV ==='local' ? 'http://127.0.0.1': "https://api.talk2mays.com"
+let BACKENDURL = ENV ==='local' ? 'http://127.0.0.1': "https://maysapi.talk2mays.com"
 let API_KEY = axios
     .post(`${BACKENDURL}/get_key`)
     .then(response => {return response.data})
