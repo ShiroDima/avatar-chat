@@ -237,10 +237,10 @@ function changeUploadLabel(fileName){
     }
 
     weightBtn.oninput = () => {
-        if(checkInputIsValid(heightBtn) && checkInputIsValid(weightBtn)){
+        if(heightBtn.value && weightBtn.value){
             bmiCalcBtn.classList.remove("cursor-not-allowed")
         }
-        if(!checkInputIsValid(weightBtn)){
+        if(!weightBtn.value){
             if(!bmiCalcBtn.classList.contains("cursor-not-allowed")){
                 bmiCalcBtn.classList.add("cursor-not-allowed")
             }
@@ -248,13 +248,13 @@ function changeUploadLabel(fileName){
     }
 
     heightBtn.oninput = () => {
-        if(!checkInputIsValid(heightBtn)){
+        if(!heightBtn.value){
             if(!bmiCalcBtn.classList.contains("cursor-not-allowed")){
                 // console.log("already disabled")
                 bmiCalcBtn.classList.add("cursor-not-allowed")
             }
         }
-        if(checkInputIsValid(weightBtn) && checkInputIsValid(heightBtn)){
+        if(heightBtn.value && weightBtn.value){
             bmiCalcBtn.classList.remove("cursor-not-allowed")
         }
 
